@@ -1,23 +1,15 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()  // Google Maven 저장소 추가
         mavenCentral()
-        gradlePluginPortal()
     }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        google()  // Google Maven 저장소 추가
         mavenCentral()
     }
 }
-
 rootProject.name = "tclick"
 include(":app")
