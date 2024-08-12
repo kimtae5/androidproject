@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--<accessibility-service-->
-<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--    android:accessibilityEventTypes="typeWindowStateChanged|typeViewClicked"-->
-<!--    android:packageNames="viva.republica.toss"-->
-<!--    android:accessibilityFeedbackType="feedbackSpoken"-->
-<!--    android:notificationTimeout="100" />-->
+<!--xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--android:description="@string/accessibility_service_description"-->
+<!--android:accessibilityEventTypes="typeAllMask"-->
+<!--android:accessibilityFeedbackType="feedbackGeneric"-->
+<!--android:notificationTimeout="100"-->
+<!--android:canRetrieveWindowContent="true"-->
+<!--android:canRequestEnhancedWebAccessibility="true"-->
+<!--android:canRequestFilterKeyEvents="true"-->
+<!--android:canRequestTouchExplorationMode="true"-->
+<!--android:settingsActivity="com.test.tclick.MainActivity>" />-->
 
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-android:accessibilityEventTypes="typeWindowContentChanged|typeWindowStateChanged"
-android:accessibilityFeedbackType="feedbackSpoken"
-android:notificationTimeout="100"
+android:accessibilityEventTypes="typeWindowStateChanged|typeViewClicked"
 android:packageNames="viva.republica.toss"
-android:accessibilityFlags="flagDefault" />
+android:accessibilityFeedbackType="feedbackGeneric"
+android:notificationTimeout="100"
+android:canRetrieveWindowContent="true"
+android:settingsActivity="com.test.tclick.MyAccessibilityService" />
