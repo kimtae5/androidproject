@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">tclick</string>
+    <string name="accessibility_service_description">Tclick Accessibility Service</string>
 </resources>

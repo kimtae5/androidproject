@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--<accessibility-service-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    android:accessibilityEventTypes="typeWindowStateChanged|typeViewClicked"-->
+<!--    android:packageNames="viva.republica.toss"-->
+<!--    android:accessibilityFeedbackType="feedbackSpoken"-->
+<!--    android:notificationTimeout="100" />-->
+
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:accessibilityEventTypes="typeWindowStateChanged|typeNotificationStateChanged"
-    android:accessibilityFeedbackType="feedbackSpoken"
-    android:notificationTimeout="100"
-    android:accessibilityFlags="flagDefault"
-    android:packageNames="com.test.tclick" />
+android:accessibilityEventTypes="typeWindowContentChanged|typeWindowStateChanged"
+android:accessibilityFeedbackType="feedbackSpoken"
+android:notificationTimeout="100"
+android:packageNames="viva.republica.toss"
+android:accessibilityFlags="flagDefault" />
