@@ -62,12 +62,6 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".MyBroadcastReceiver"
-                  android:exported="true">
-            <intent-filter>
-                <action android:name="com.test.tclick.ACTION_TRIGGER_ACCESSIBILITY" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>
