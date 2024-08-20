@@ -50,21 +50,25 @@ public class MyAccessibilityService extends AccessibilityService {
             scheduleServiceShutdown();
 
             if (event.getPackageName().equals("viva.republica.toss")) {
-                String[] searchTexts = {"홈", "혜택", "토스페이"};
-                for (String searchText : searchTexts) {
-                    AccessibilityNodeInfo node = findNodeByText(rootNode, searchText);
-                    if (node != null) {
-                        Log.d(TAG, "찾은 요소: " + node.getText());
-                        performClick(node);
-                        try {
-                            Thread.sleep(1000); // 1초 대기
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        Log.d(TAG, searchText + " 텍스트를 가진 요소를 찾을 수 없습니다.");
-                    }
-                }
+                // Toss 앱 실행 후 Click 클래스의 메서드 실행
+                Func func = new Func(this); // Func 클래스 인스턴스를 생성 (가정)
+                Click click = new Click(func);
+                click.execute();
+//                String[] searchTexts = {"홈", "혜택", "토스페이"};
+//                for (String searchText : searchTexts) {
+//                    AccessibilityNodeInfo node = findNodeByText(rootNode, searchText);
+//                    if (node != null) {
+//                        Log.d(TAG, "찾은 요소: " + node.getText());
+//                        performClick(node);
+//                        try {
+//                            Thread.sleep(1000); // 1초 대기
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//                    } else {
+//                        Log.d(TAG, searchText + " 텍스트를 가진 요소를 찾을 수 없습니다.");
+//                    }
+//                }
             }
             // 모든 작업이 완료되면 서비스 종료
             stopForeground(true);
