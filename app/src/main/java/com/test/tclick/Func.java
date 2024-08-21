@@ -174,29 +174,6 @@ public class Func {
         long timeout = 10000; // 최대 10초 동안 대기
         boolean timeoutReached = false; // 타임아웃 도달 여부
 
-        while (true) {
-            boolean isLoading = checkLoading();
-            Log.d("Func", "checkLoading 결과: " + isLoading);
-            if (isLoading) {
-                SystemClock.sleep(500);
-                break;
-            } else {
-                SystemClock.sleep(1000);
-            }
-
-            // 타임아웃 체크
-            if (System.currentTimeMillis() - startTime > timeout) {
-                Log.d("Func", "타임아웃 도달. 반복 종료");
-                timeoutReached = true;
-                break;
-            }
-        }
-
-        // 타임아웃 도달 시 false 반환하고 종료
-        if (timeoutReached) {
-            return false;
-        }
-
         AccessibilityNodeInfo element = contains ? findElementByTextContains(text) : findElementByText(text);
         if (element != null) {
             String elementText = getElementText(element);
