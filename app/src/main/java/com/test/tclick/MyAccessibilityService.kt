@@ -1,246 +1,232 @@
-package com.test.tclick;
+package com.test.tclick
 
-import android.accessibilityservice.AccessibilityService;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Intent;
-import android.content.pm.ServiceInfo;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.Toast;
+import android.R
+import android.accessibilityservice.AccessibilityService
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-import androidx.core.app.NotificationCompat;
+class MyAccessibilityService : AccessibilityService() {
 
+    private val serviceScope = CoroutineScope(Dispatchers.Default)
 
-public class MyAccessibilityService extends AccessibilityService {
-
-    private static final String TAG = "MyAccessibilityService";
-    private static final String CHANNEL_ID = "my_accessibility_service_channel";
-    private static final int NOTIFICATION_ID = 1;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        createNotificationChannel();  // Notification channel 생성
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel() // Notification channel 생성
     }
 
-    private void scheduleServiceShutdown() {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            disableSelf();
-        }, 5000); // 5초 후 서비스 종료
+    private fun scheduleServiceShutdown() {
+        Handler(Looper.getMainLooper()).postDelayed({
+            disableSelf()
+        }, 5000) // 5초 후 서비스 종료
     }
 
-    @Override
-    public void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.d(TAG, "Event Type: " + event.getEventType());
-        Log.d(TAG, "Package Name: " + event.getPackageName());
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        Log.d(TAG, "Event Type: " + event.eventType)
+        Log.d(TAG, "Package Name: " + event.packageName)
 
         // 특정 이벤트 타입을 감지
-        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            val rootNode = rootInActiveWindow
+            scheduleServiceShutdown()
 
-            AccessibilityNodeInfo rootNode = getRootInActiveWindow();
-//            if (rootNode != null) {
-//                logAllNodes(rootNode, 0);
-//            }
-            scheduleServiceShutdown();
-
-            if (event.getPackageName().equals("viva.republica.toss")) {
+            if (event.packageName == "viva.republica.toss") {
                 // Toss 앱 실행 후 Click 클래스의 메서드 실행
-                Func func = new Func(this); // Func 클래스 인스턴스를 생성 (가정)
-                Click click = new Click(func);
-                click.execute();
-//                String[] searchTexts = {"홈", "혜택", "토스페이"};
-//                for (String searchText : searchTexts) {
-//                    AccessibilityNodeInfo node = findNodeByText(rootNode, searchText);
-//                    if (node != null) {
-//                        Log.d(TAG, "찾은 요소: " + node.getText());
-//                        performClick(node);
-//                        try {
-//                            Thread.sleep(1000); // 1초 대기
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    } else {
-//                        Log.d(TAG, searchText + " 텍스트를 가진 요소를 찾을 수 없습니다.");
-//                    }
-//                }
+                val func = Func(this) // Func 클래스 인스턴스를 생성 (가정)
+                val click = Click(func)
+
+                // 코루틴 내부에서 suspend 함수 호출
+                serviceScope.launch {
+                    click.execute() // 여기서 suspend 함수 호출
+                }
             }
+
             // 모든 작업이 완료되면 서비스 종료
-            stopForeground(true);
-            disableSelf();
+            stopForeground(true)
+            disableSelf()
         }
     }
 
-    private void performClick(AccessibilityNodeInfo node) {
-        if (node.isClickable()) {
-            boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+    private fun performClick(node: AccessibilityNodeInfo) {
+        if (node.isClickable) {
+            val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
             if (clicked) {
-                Log.d(TAG, "요소 클릭 성공");
+                Log.d(TAG, "요소 클릭 성공")
             } else {
-                Log.d(TAG, "요소 클릭 실패");
+                Log.d(TAG, "요소 클릭 실패")
             }
         } else {
-            Log.d(TAG, "요소가 클릭할 수 없습니다. 부모 노드를 클릭 시도합니다.");
-            AccessibilityNodeInfo parent = node.getParent();
+            Log.d(TAG, "요소가 클릭할 수 없습니다. 부모 노드를 클릭 시도합니다.")
+            var parent = node.parent
             while (parent != null) {
-                if (parent.isClickable()) {
-                    boolean clicked = parent.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                if (parent.isClickable) {
+                    val clicked = parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                     if (clicked) {
-                        Log.d(TAG, "부모 요소 클릭 성공 : " + node.getText());
-                        break;
+                        Log.d(TAG, "부모 요소 클릭 성공 : " + node.text)
+                        break
                     }
                 }
-                parent = parent.getParent();
+                parent = parent.parent
             }
         }
     }
 
-    private void logAllNodes(AccessibilityNodeInfo node, int level) {
+    private fun logAllNodes(node: AccessibilityNodeInfo?, level: Int) {
         if (node == null) {
-            return;
+            return
         }
 
         // 로그 출력
-        String indent = " ".repeat(level * 2);  // 들여쓰기
-        String className = node.getClassName() != null ? node.getClassName().toString() : "null";
-        String text = node.getText() != null ? node.getText().toString() : "null";
-        String contentDescription = node.getContentDescription() != null ? node.getContentDescription().toString() : "null";
+        val indent = " ".repeat(level * 2) // 들여쓰기
+        val className = if (node.className != null) node.className.toString() else "null"
+        val text = if (node.text != null) node.text.toString() else "null"
+        val contentDescription =
+            if (node.contentDescription != null) node.contentDescription.toString() else "null"
 
-        Log.d(TAG, indent + "ClassName: " + className);
-        if (node.getText() != null) {
-            Log.d(TAG, indent + "Text: " + text);
+        Log.d(TAG, indent + "ClassName: " + className)
+        if (node.text != null) {
+            Log.d(TAG, indent + "Text: " + text)
         }
-        if (node.getContentDescription() != null) {
-            Log.d(TAG, indent + "ContentDescription: " + contentDescription);
+        if (node.contentDescription != null) {
+            Log.d(TAG, indent + "ContentDescription: " + contentDescription)
         }
 
         // 자식 노드 재귀 호출
-        for (int i = 0; i < node.getChildCount(); i++) {
-            logAllNodes(node.getChild(i), level + 1);
+        for (i in 0 until node.childCount) {
+            logAllNodes(node.getChild(i), level + 1)
         }
     }
 
-
-    @Override
-    public void onInterrupt() {
+    override fun onInterrupt() {
         // 필요 시 인터럽트 처리
-        stopForeground(true);
-        disableSelf();
+        stopForeground(true)
+        disableSelf()
     }
 
-    @Override
-    public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "Service Unbound");
-        return super.onUnbind(intent);
+    override fun onUnbind(intent: Intent): Boolean {
+        Log.d(TAG, "Service Unbound")
+        return super.onUnbind(intent)
     }
 
-    @Override
-    protected void onServiceConnected() {
-        super.onServiceConnected();
-        Log.d(TAG, "Service Connected");
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        Log.d(TAG, "Service Connected")
 
         // Foreground 서비스로 설정
-        startForeground(NOTIFICATION_ID, createNotification());
+        startForeground(NOTIFICATION_ID, createNotification())
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand called");
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand called")
 
         // Foreground 서비스로 설정
-        startForeground(NOTIFICATION_ID, createNotification());
+        startForeground(NOTIFICATION_ID, createNotification())
 
-        if (intent != null && "com.test.tclick.ACTION_TRIGGER_ACCESSIBILITY".equals(intent.getAction())) {
-            Log.d(TAG, "Triggering Toss App Launch");
-            launchTossApp();
+        if (intent != null && "com.test.tclick.ACTION_TRIGGER_ACCESSIBILITY" == intent.action) {
+            Log.d(TAG, "Triggering Toss App Launch")
+            launchTossApp()
         } else {
             // 인텐트가 없으면 서비스 종료
-            stopForeground(true);
-            stopSelf();
+            stopForeground(true)
+            stopSelf()
         }
-        return START_NOT_STICKY; // 서비스가 종료된 후 다시 시작하지 않도록 설정
+        return START_NOT_STICKY // 서비스가 종료된 후 다시 시작하지 않도록 설정
     }
 
-
-    private void launchTossApp() {
-        Intent launchIntent = getPackageManager().getLaunchIntentForPackage("viva.republica.toss");
-        Log.d(TAG, "Launch Intent: " + (launchIntent != null));
+    private fun launchTossApp() {
+        val launchIntent = packageManager.getLaunchIntentForPackage("viva.republica.toss")
+        Log.d(TAG, "Launch Intent: " + (launchIntent != null))
         if (launchIntent != null) {
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(launchIntent);
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(launchIntent)
 
             // 앱 실행 후 특정 시간 대기
-            new Handler().postDelayed(() -> {
+            Handler().postDelayed({
                 // 작업이 완료되면 서비스 종료
-                stopForeground(true);
-                stopSelf();
-            }, 3000); // 예를 들어 3초 후
+                stopForeground(true)
+                stopSelf()
+            }, 3000) // 예를 들어 3초 후
         } else {
-            Log.d(TAG, "Toss 앱을 찾을 수 없습니다.");
-            Toast.makeText(this, "Toss 앱을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Toss 앱을 찾을 수 없습니다.")
+            Toast.makeText(this, "Toss 앱을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    public AccessibilityNodeInfo findNodeByText(AccessibilityNodeInfo root, String text) {
-        if (root == null) return null;
+    fun findNodeByText(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
+        if (root == null) return null
 
-        if (text.equals(root.getText())) {
-            return root;
+        if (text == root.text) {
+            return root
         }
 
-        for (int i = 0; i < root.getChildCount(); i++) {
-            AccessibilityNodeInfo result = findNodeByText(root.getChild(i), text);
+        for (i in 0 until root.childCount) {
+            val result = findNodeByText(root.getChild(i), text)
             if (result != null) {
-                return result;
+                return result
             }
         }
-        return null;
+        return null
     }
 
-    private void createNotificationChannel() {
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "My Accessibility Service",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "My Accessibility Service",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            val manager = getSystemService(
+                NotificationManager::class.java
+            )
+            manager?.createNotificationChannel(channel)
         }
     }
 
-    private Notification createNotification() {
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("서비스 실행 중")
-                .setContentText("MyAccessibilityService가 실행 중입니다.")
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .build();
+    private fun createNotification(): Notification {
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("서비스 실행 중")
+            .setContentText("MyAccessibilityService가 실행 중입니다.")
+            .setSmallIcon(R.drawable.ic_dialog_info)
+            .build()
     }
 
-    private void startForegroundServiceWithType() {
-        Notification notification = createNotification();
+    private fun startForegroundServiceWithType() {
+        val notification = createNotification()
 
         // Android Q(API 레벨 29) 이상에서는 FOREGROUND_SERVICE_TYPE_MANIFEST를 지정합니다.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST);
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
+            )
         } else {
-            startForeground(NOTIFICATION_ID, notification);
+            startForeground(NOTIFICATION_ID, notification)
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopSelf();  // 서비스가 종료되도록 확실히 처리
-        Log.d(TAG, "Service Destroyed");
+    override fun onDestroy() {
+        super.onDestroy()
+        stopSelf() // 서비스가 종료되도록 확실히 처리
+        Log.d(TAG, "Service Destroyed")
     }
 
-
+    companion object {
+        private const val TAG = "MyAccessibilityService"
+        private const val CHANNEL_ID = "my_accessibility_service_channel"
+        private const val NOTIFICATION_ID = 1
+    }
 }

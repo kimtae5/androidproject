@@ -1,317 +1,241 @@
-package com.test.tclick;
+package com.test.tclick
 
-import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.GestureDescription;
-import android.graphics.Path;
-import android.graphics.Rect;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.SystemClock;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
+import android.accessibilityservice.AccessibilityService
+import android.content.Context
+import android.graphics.Rect
+import android.util.DisplayMetrics
+import android.util.Log
+import android.view.WindowManager
+import android.view.accessibility.AccessibilityNodeInfo
+import kotlin.math.roundToInt
 
-import java.util.List;
+class Func(private val service: AccessibilityService) {
 
-public class Func {
-    public AccessibilityService service;
+    private val width: Int
+    private val height: Int
 
-    public Func(AccessibilityService service) {
-        this.service = service;
+    init {
+        // Get the screen width and height
+        val size = getScreenSize(service)
+        width = size.first
+        height = size.second
     }
 
-    public int[] getWindowSize() {
-        return new int[]{
-                service.getResources().getDisplayMetrics().widthPixels,
-                service.getResources().getDisplayMetrics().heightPixels
-        };
+    fun getScreenSize(context: Context): Pair<Int, Int> {
+        val displayMetrics = DisplayMetrics()
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        return Pair(displayMetrics.widthPixels, displayMetrics.heightPixels)
     }
 
-    public void scrollMove(String move, int num, int back) {
-        int[] size = getWindowSize();
-        int width = size[0];
-        int height = size[1];
+    fun scrollMove(move: String = "up", num: Int = 1, back: Int = 0) {
+        val swipeYStart = if (move == "up") height / 2 else height / 4
+        val swipeYEnd = if (move == "up") height / 4 else height / 2
 
-        if ("up".equals(move)) {
-            for (int i = 0; i < num; i++) {
-                swipe(width / 2, height / 2, width / 2, height / 4);
-                SystemClock.sleep(300);
-            }
-            Log.d("Func", "스크롤 " + move + " " + num + " 번");
-        } else if ("down".equals(move)) {
-            for (int i = 0; i < num; i++) {
-                swipe(width / 2, height / 4, width / 2, height / 2);
-                SystemClock.sleep(300);
-            }
-            Log.d("Func", "스크롤 " + move + " " + num + " 번");
-        } else {
-            for (int i = 0; i < num; i++) {
-                swipe(width / 2, height / 2, width / 2, height / 4);
-                swipe(width / 2, height / 4, width / 2, height / 2);
-            }
-            for (int i = 0; i < back; i++) {
-                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-            }
-            Log.d("Func", "스크롤 " + move + " " + num + " 번");
-            Log.d("Func", "뒤로가기 " + back + " 번");
+        repeat(num) {
+            Log.d("Func", "Scroll $move, $num time")
+            // Implement swipe action
+            Thread.sleep(300)
+        }
+
+        repeat(back) {
+            Log.d("Func", "$back time back")
+            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
         }
     }
 
-    private void swipe(int startX, int startY, int endX, int endY) {
-        // Gesture를 사용하여 스와이프 구현이 필요합니다.
-        // Android 7.0 (API 레벨 24) 이상에서 `GestureDescription` 클래스를 사용하여 구현할 수 있습니다.
-    }
-
-    public AccessibilityNodeInfo findElementByText(String text) {
-        AccessibilityNodeInfo rootNode = service.getRootInActiveWindow();
-        if (rootNode != null) {
-            List<AccessibilityNodeInfo> nodes = rootNode.findAccessibilityNodeInfosByText(text);
-            if (!nodes.isEmpty()) {
-                return nodes.get(0);
-            }
-        }
-        return null;
-    }
-
-    public AccessibilityNodeInfo findElementByTextContains(String text) {
-        AccessibilityNodeInfo rootNode = service.getRootInActiveWindow();
-        if (rootNode != null) {
-            List<AccessibilityNodeInfo> nodes = rootNode.findAccessibilityNodeInfosByText(text);
-            if (!nodes.isEmpty()) {
-                for (AccessibilityNodeInfo node : nodes) {
-                    if (node.getText() != null && node.getText().toString().contains(text)) {
-                        return node;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public AccessibilityNodeInfo findElementByViewId(String viewId) {
-        AccessibilityNodeInfo rootNode = service.getRootInActiveWindow();
-        if (rootNode != null) {
-            List<AccessibilityNodeInfo> nodes = rootNode.findAccessibilityNodeInfosByViewId(viewId);
-            if (!nodes.isEmpty()) {
-                return nodes.get(0);
-            }
-        }
-        return null;
-    }
-
-    private AccessibilityNodeInfo findSibling(AccessibilityNodeInfo parentElement, String siblingClass) {
-        if (parentElement != null && parentElement.getParent() != null) {
-            AccessibilityNodeInfo parent = parentElement.getParent();
-            int childCount = parent.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                AccessibilityNodeInfo sibling = parent.getChild(i);
-                if (sibling != null && sibling.getClassName().equals(siblingClass)) {
-                    return sibling;
-                }
-            }
-        }
-        return null;
-    }
-
-    private AccessibilityNodeInfo findChild(AccessibilityNodeInfo siblingElement, String childClass) {
-        if (siblingElement != null) {
-            int childCount = siblingElement.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                AccessibilityNodeInfo child = siblingElement.getChild(i);
-                if (child != null && child.getClassName().equals(childClass)) {
-                    return child;
-                }
-            }
-        }
-        return null;
-    }
-
-    private void clickElement(AccessibilityNodeInfo element) {
-        if (element != null) {
-            element.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-        }
-    }
-
-    private void longClickElement(AccessibilityNodeInfo element) {
-        if (element != null) {
-            element.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
-        }
-    }
-
-    public boolean clickElement(AccessibilityNodeInfo element, String text, long sleepTime, int clicks, boolean longClick) {
-        if (element != null) {
-            for (int i = 0; i < clicks; i++) {
+    fun clickElement(element: AccessibilityNodeInfo, text: String, sleepTime: Long = 500, clicks: Int = 1, longClick: Boolean = false): Boolean {
+        return if (element.isVisibleToUser) {
+            Log.d("Func", "$text, $clicks time click")
+            repeat(clicks) {
                 if (longClick) {
-                    longClickElement(element);
+                    element.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)
                 } else {
-                    clickElement(element);
+                    element.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 }
-                Log.d("Func", text + " click");
-                SystemClock.sleep(sleepTime);
+                Thread.sleep(sleepTime)
             }
-            return true;
+            true
         } else {
-            Log.d("Func", "clickElement 함수에서 not found " + text + " element");
-            return false;
+            Log.d("Func", "clickElement function: not found $text element")
+            false
         }
     }
 
-    public boolean clickElement2(String text, long sleepTime, int clicks, String... args) {
-        AccessibilityNodeInfo element = findElementByText(text);
-        if (element != null) {
-            for (int i = 0; i < clicks; i++) {
-                clickElement(element);
-                Log.d("Func", text + " 클릭");
-                SystemClock.sleep(sleepTime);
+    fun clickElement2(text: String, sleepTime: Long = 500, clicks: Int = 1, vararg args: String): Boolean {
+        val element = findElement(*args) ?: return false
+        return if (element.isVisibleToUser) {
+            Log.d("Func", "$text click $clicks times")
+            repeat(clicks) {
+                element.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                Thread.sleep(sleepTime)
             }
-            return true;
+            true
+        } else {
+            false
         }
-        return false;
     }
 
-    public boolean findAndClick(String text, boolean contains, long sleepTime, int clicks, boolean longClick) {
-        long startTime = System.currentTimeMillis();
-        long timeout = 10000; // 최대 10초 동안 대기
-        boolean timeoutReached = false; // 타임아웃 도달 여부
+    fun findAndClick(
+        text: String, contains: Boolean = false, sleepTime: Long = 500, clicks: Int = 1,
+        needElements: Int = 1, longClick: Boolean = false, word: Boolean = true, load: Boolean = true
+    ): Boolean {
+//        if (load) {
+//            waitForElementToLoad(needElements)
+//        }
 
-        AccessibilityNodeInfo element = contains ? findElementByTextContains(text) : findElementByText(text);
-        if (element != null) {
-            String elementText = getElementText(element);
-            Log.d("Func", "Element 발견: " + elementText);
+        val element = if (contains) findElementByTextContains(text) else findElementByText(text)
 
-            if (isInvalidElement(element, elementText)) {
-                Log.d("Func", "Element가 유효하지 않음: " + elementText);
-                return false;
+        return if (element?.isVisibleToUser == true) {
+            if (word) {
+                val elementText = element.text.toString()
+                if (elementText.contains("완료") || elementText.contains("후에")) {
+                    Log.d("Func", "$text element contains '완료' or '후에'")
+                    false
+                } else {
+                    clickElement(element, text, sleepTime, clicks, longClick)
+                }
             } else {
-                boolean clicked = clickElement(element, text, sleepTime, clicks, longClick);
-                Log.d("Func", "Element 클릭 결과: " + clicked);
-                return clicked;
+                clickElement(element, text, sleepTime, clicks, longClick)
             }
         } else {
-            Log.d("Func", "findAndClick 함수에서 not found: " + text);
-            return false;
+            Log.d("Func", "findAndClick function: not found: $text")
+            false
         }
     }
 
+    fun mainBack(text: String, text2: String = "", contains: Boolean = false, sleepTime: Long = 300) {
+        var cnt = 0
+        repeat(25) {
+            if (text2.isNotEmpty()) {
+                findAndClick(text2)
+            }
+            val exists = if (contains) findElementByTextContains(text)?.isVisibleToUser == true else findElementByText(text)?.isVisibleToUser == true
+            if (exists) {
+                Log.d("Func", "find $text, $cnt time back")
+                return
+            }
+            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+            Thread.sleep(sleepTime)
+            cnt++
+            Log.d("Func", "$cnt time back")
+        }
+    }
 
+    fun backKey(num: Int = 1) {
+        Log.d("Func", "$num time back")
+        repeat(num) {
+            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+            Thread.sleep(300)
+        }
+    }
 
-    public void mainBack(String text, String text2, boolean contains) {
-        long startTime = System.currentTimeMillis();
-        long timeout = 3000;  // 최대 3초 동안 시도
+    fun waitElement(existElement: Boolean = true, vararg args: String) {
+        repeat(8) {
+            val exists = findElement(*args)?.isVisibleToUser == existElement
+            if (exists) {
+                Thread.sleep(1000)
+                return
+            } else {
+                Thread.sleep(2000)
+                Log.d("Func", "waiting.... $args not found")
+            }
+        }
+    }
 
-        for (int i = 0; i < 10; i++) {
-            SystemClock.sleep(300);
-            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-            Log.d("Func", "뒤로가기 시도 " + (i + 1));
-
-            if (!text2.isEmpty()) {
-                boolean clicked = findAndClick(text2, false, 500, 1, false);
-                if (clicked) {
-                    Log.d("Func", text2 + " 클릭 성공");
+    fun findAndClickSiblingChild(
+        parentText: String, siblingClass: String, childClass: String,
+        contains: Boolean = false, sleepTime: Long = 500, clicks: Int = 1
+    ): Boolean {
+        val parentElement = if (contains) findElementByTextContains(parentText) else findElementByText(parentText)
+        return if (parentElement?.isVisibleToUser == true) {
+            val siblingElement = parentElement.findSiblingByClass(siblingClass)
+            if (siblingElement?.isVisibleToUser == true) {
+                val childElement = siblingElement.findChildByClass(childClass)
+                if (childElement?.isVisibleToUser == true) {
+                    clickElement(childElement, childElement.text.toString(), sleepTime, clicks)
+                    true
                 } else {
-                    Log.d("Func", text2 + " 클릭 실패");
+                    Log.d("Func", "Child element with class $childClass not found under sibling with class $siblingClass")
+                    false
                 }
+            } else {
+                Log.d("Func", "Sibling element with class $siblingClass not found")
+                false
             }
-
-            boolean found = (contains && findElementByTextContains(text) != null) ||
-                    (!contains && findElementByText(text) != null);
-
-            if (found) {
-                Log.d("Func", text + " 발견됨");
-                break;
-            }
-
-            // 타임아웃 체크
-            if (System.currentTimeMillis() - startTime > timeout) {
-                Log.d("Func", "타임아웃 도달. 반복 종료");
-                break;
-            }
-        }
-    }
-
-    public void backKey(int num2) {
-        for (int i = 0; i < num2; i++) {
-            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-            SystemClock.sleep(300);
-        }
-    }
-
-    public void waitElement(boolean existElement, String... args) {
-        for (int i = 0; i < 20; i++) {
-            if (findElementByTextContains(args[0]) != null == existElement) {
-                break;
-            }
-            SystemClock.sleep(300);
-        }
-    }
-
-    private boolean checkLoading() {
-        AccessibilityNodeInfo loading = findElementByTextContains("Loading");
-        return loading != null;
-    }
-
-    private String getElementText(AccessibilityNodeInfo element) {
-        CharSequence text = element.getText();
-        return text != null ? text.toString() : "";
-    }
-
-    private boolean isInvalidElement(AccessibilityNodeInfo element, String text) {
-        return text.equals("") || element.getContentDescription() != null;
-    }
-
-    public void deviceClick(int x, int y) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // API 24 이상에서 GestureDescription 사용
-            GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
-            Path path = new Path();
-            path.moveTo(x, y);
-            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(path, 0, 1));
-            GestureDescription gesture = gestureBuilder.build();
-            service.dispatchGesture(gesture, null, null);
         } else {
-            // API 24 이하에서는 MotionEvent 사용
-            MotionEvent eventDown = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
-                    MotionEvent.ACTION_DOWN, x, y, 0);
-            MotionEvent eventUp = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100,
-                    MotionEvent.ACTION_UP, x, y, 0);
-//            service.dispatchTouchEvent(eventDown);
-//            service.dispatchTouchEvent(eventUp);
-            eventDown.recycle();
-            eventUp.recycle();
+            Log.d("Func", "Parent element with text $parentText not found")
+            false
         }
     }
 
-    // 텍스트 필드를 찾아서 마지막 4자를 제외한 나머지 부분을 삭제하는 함수
-    public void deleteTextExceptLast4(AccessibilityNodeInfo node) {
-        if (node != null) {
-            // 텍스트 필드 클릭
-            node.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+    fun findAndClickWithinBounds(
+        textContains: String, endText: String, interval: Int = 120,
+        startX: Float = 200f, startY: Float = 0.74f
+    ) {
+        val element = findElementByTextContains(textContains)
+        if (element?.isVisibleToUser == true) {
+            val bounds = Rect()
+            element.getBoundsInScreen(bounds)
+            Log.d("Func", "Element bounds: $bounds")
 
-            // 전체 텍스트 선택
-            CharSequence text = node.getText();
-            if (text != null) {
-                String textString = text.toString();
-                int textLength = textString.length();
-
-                if (textLength > 4) {
-                    // 마지막 4자를 제외한 텍스트 선택
-                    int start = 0;
-                    int end = textLength - 4;
-                    Bundle arguments = new Bundle();
-                    arguments.putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, start);
-                    arguments.putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, end);
-                    node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
-
-                    // 선택한 텍스트 삭제
-                    arguments.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, "");
-                    node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
-                } else {
-                    // 텍스트 길이가 4보다 작을 경우 전체 텍스트를 삭제
-                    Bundle arguments = new Bundle();
-                    arguments.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, "");
-                    node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
+            for (offset in 0 until (bounds.bottom - bounds.top) step interval) {
+                val clickX = startX + offset
+                val clickY = startY
+                Log.d("Func", "Clicking at ($clickX, $clickY)")
+                // Implement click action
+                Thread.sleep(500)
+                if (findElementByTextContains(endText)?.isVisibleToUser == false) {
+                    Log.d("Func", "Screen transition detected")
+                    break
                 }
             }
         }
     }
+
+    // Implementation for helper methods
+    fun findElementByText(text: String): AccessibilityNodeInfo? {
+        return service.rootInActiveWindow?.findAccessibilityNodeInfosByText(text)?.firstOrNull()
+    }
+
+    fun findElementByTextContains(text: String): AccessibilityNodeInfo? {
+        return service.rootInActiveWindow?.findAccessibilityNodeInfosByText(text)?.firstOrNull()
+    }
+
+    private fun findElement(vararg args: String): AccessibilityNodeInfo? {
+        // Implement a method to search for an element based on multiple arguments (text, resource ID, etc.)
+        // Example: Find element by text or other attributes
+        return service.rootInActiveWindow?.findAccessibilityNodeInfosByText(args.firstOrNull() ?: "")?.firstOrNull()
+    }
+
+    private fun AccessibilityNodeInfo.findSiblingByClass(className: String): AccessibilityNodeInfo? {
+        val parent = this.parent ?: return null
+        for (i in 0 until parent.childCount) {
+            val sibling = parent.getChild(i)
+            if (sibling != null && sibling.className == className && sibling != this) {
+                return sibling
+            }
+        }
+        return null
+    }
+
+    private fun AccessibilityNodeInfo.findChildByClass(className: String): AccessibilityNodeInfo? {
+        for (i in 0 until this.childCount) {
+            val child = this.getChild(i)
+            if (child != null && child.className == className) {
+                return child
+            }
+        }
+        return null
+    }
+
+    private val AccessibilityNodeInfo.isVisibleToUser: Boolean
+        get() = this.isVisibleToUser
+
+    private val AccessibilityNodeInfo.bounds: Rect
+        get() {
+            val rect = Rect()
+            this.getBoundsInScreen(rect)
+            return rect
+        }
 }
