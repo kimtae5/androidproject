@@ -10,80 +10,106 @@ class Click(private val func: Func) {
     suspend fun execute() {
         withContext(Dispatchers.IO) {
             try {
-                // '혜택'이라는 텍스트를 가진 요소 찾기
-                func.mainBack("혜택", false.toString())
-                delay(500)
-                func.findAndClick("혜택", false, 500, 2, if (false) 1 else 0)
 
-                if (func.findAndClick("친구와 함께", true, 5000, 1, if (false) 1 else 0)) {
-                    func.waitElement(true, "보너스")
-                    repeat(10) {
-                        if (func.findAndClick("1원 더", false, 3000, 1, if (false) 1 else 0)) {
-                            func.backKey(1)
-                            delay(2000)
-                        } else {
-                            return@withContext
-                        }
+                val buttonTexts = listOf("혜택", "홈", "전체")
+
+                for (buttonText in buttonTexts) {
+                    val clicked = func.findAndClick(
+                        text = buttonText,
+                        contains = false,
+                        sleepTime = 500,
+                        clicks = 1,
+                        needElements = 1,
+                        longClick = false
+                    )
+
+                    if (clicked) {
+                        Log.d("ClickHandler", "$buttonText 버튼 클릭 성공")
+                    } else {
+                        Log.d("ClickHandler", "$buttonText 버튼을 찾을 수 없음")
                     }
-                    if (func.findAndClick("보너스", true, 3000, 1, if (false) 1 else 0)) {
-                        func.backKey(1)
-                    }
-                    func.backKey(1)
+
+                    func.mainBack(
+                        text2 = buttonText,
+                        text1 = "", // 종료 조건 텍스트는 빈 문자열로 설정
+                        sleepTime = 300
+                    )
                 }
 
-                // '방송 중'이라는 텍스트를 가진 요소 찾기
-                if (func.findAndClick("방송 중", false, 500, 1, if (false) 1 else 0)) {
-                    func.waitElement(true, "포인트")
-                    Log.d("MainTask", "thumbnails.count 개의 thumbnail 찾음")
-                    repeat(10) {
-                        // 썸네일 탐색 및 클릭 로직 추가 가능
-                    }
-                }
-
-                // '행운복권'이라는 텍스트를 가진 요소 찾기
-                if (func.findAndClick("행운복권", true, 3500, 1, if (false) 1 else 0)) {
-                    func.findAndClick("행운복권", true, 2000, 1, if (false) 1 else 0)
-                    func.mainBack("혜택", false.toString())
-                }
-
-                func.scrollMove("up", 2, 0)
-
-                // '이번주 미션'이라는 텍스트를 가진 요소 찾기
-                if (func.findAndClick("미션", true, 1500, 1, if (false) 1 else 0)) {
-                    handleWeeklyMission()
-                }
-
-                func.scrollMove("up", 2, 0)
-
-                // '토스쇼핑'이라는 텍스트를 가진 요소 찾기
-                if (func.findAndClick("토스쇼핑", true, 1500, 1, if (false) 1 else 0)) {
-                    if (func.findAndClick("받기", true, 500, 1, if (false) 1 else 0)) {
-                        func.scrollMove("up", 26, 0)
-                    }
-                    func.mainBack("혜택", false.toString())
-                }
-
-                func.scrollMove("up", 2, 0)
-
-                // '만보기'라는 텍스트를 가진 요소 찾기
-                if (func.findAndClick("만보기", true, 500, 1, 0)) {
-                    handleStepCounter()
-                }
-
-                // '일주일 방문 미션'이라는 텍스트를 가진 요소 찾기
-                if (func.findAndClick("일주일 방문 미션", false, 1000, 1, if (false) 1 else 0)) {
-                    handleWeeklyVisitMission()
-                }
-
-                func.scrollMove("up", 2, 0)
-
-                // '게시물'이라는 텍스트를 가진 요소 찾기
-                if (func.findAndClick("게시물", true, 2000, 1, if (false) 1 else 0)) {
-                    handlePostMission()
-                }
-
-                func.scrollMove("up", 2, 0)
-
+//                // '혜택'이라는 텍스트를 가진 요소 찾기
+//                func.mainBack(text1="홈")
+//                delay(500)
+//                func.findAndClick("혜택", false, 500, 2, if (false) 1 else 0)
+//
+//                if (func.findAndClick("친구와 함께", true, 5000, 1, if (false) 1 else 0)) {
+//                    func.waitElement(true, "보너스")
+//                    repeat(10) {
+//                        if (func.findAndClick("1원 더", false, 3000, 1, if (false) 1 else 0)) {
+//                            func.backKey(1)
+//                            delay(2000)
+//                        } else {
+//                            return@withContext
+//                        }
+//                    }
+//                    if (func.findAndClick("보너스", true, 3000, 1, if (false) 1 else 0)) {
+//                        func.backKey(1)
+//                    }
+//                    func.backKey(1)
+//                }
+//
+//                // '방송 중'이라는 텍스트를 가진 요소 찾기
+//                if (func.findAndClick("방송 중", false, 500, 1, if (false) 1 else 0)) {
+//                    func.waitElement(true, "포인트")
+//                    Log.d("MainTask", "thumbnails.count 개의 thumbnail 찾음")
+//                    repeat(10) {
+//                        // 썸네일 탐색 및 클릭 로직 추가 가능
+//                    }
+//                }
+//
+//                // '행운복권'이라는 텍스트를 가진 요소 찾기
+//                if (func.findAndClick("행운복권", true, 3500, 1, if (false) 1 else 0)) {
+//                    func.findAndClick("행운복권", true, 2000, 1, if (false) 1 else 0)
+//                    func.mainBack("혜택", false.toString())
+//                }
+//
+//                func.scrollMove("up", 2, 0)
+//
+//                // '이번주 미션'이라는 텍스트를 가진 요소 찾기
+//                if (func.findAndClick("미션", true, 1500, 1, if (false) 1 else 0)) {
+//                    handleWeeklyMission()
+//                }
+//
+//                func.scrollMove("up", 2, 0)
+//
+//                // '토스쇼핑'이라는 텍스트를 가진 요소 찾기
+//                if (func.findAndClick("토스쇼핑", true, 1500, 1, if (false) 1 else 0)) {
+//                    if (func.findAndClick("받기", true, 500, 1, if (false) 1 else 0)) {
+//                        func.scrollMove("up", 26, 0)
+//                    }
+//                    func.mainBack("혜택", false.toString())
+//                }
+//
+//                func.scrollMove("up", 2, 0)
+//
+//                // '만보기'라는 텍스트를 가진 요소 찾기
+//                if (func.findAndClick("만보기", true, 500, 1, 0)) {
+//                    handleStepCounter()
+//                }
+//
+//                // '일주일 방문 미션'이라는 텍스트를 가진 요소 찾기
+//                if (func.findAndClick("일주일 방문 미션", false, 1000, 1, if (false) 1 else 0)) {
+//                    handleWeeklyVisitMission()
+//                }
+//
+//                func.scrollMove("up", 2, 0)
+//
+//                // '게시물'이라는 텍스트를 가진 요소 찾기
+//                if (func.findAndClick("게시물", true, 2000, 1, if (false) 1 else 0)) {
+//                    handlePostMission()
+//                }
+//
+//                func.scrollMove("up", 2, 0)
+//
             } catch (e: Exception) {
                 Log.e("ClickTask", "Error occurred: ${e.localizedMessage}")
             }

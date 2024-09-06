@@ -10,6 +10,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -17,7 +18,6 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MyAccessibilityService : AccessibilityService() {
 
@@ -49,9 +49,16 @@ class MyAccessibilityService : AccessibilityService() {
                 val click = Click(func)
 
                 // 코루틴 내부에서 suspend 함수 호출
-                serviceScope.launch {
-                    click.execute() // 여기서 suspend 함수 호출
+//                serviceScope.launch {
+//                    click.execute() // 여기서 suspend 함수 호출
+//                }
+
+                for (i in 1..3) {
+                    findTextElements()
+                    mainBack(targetText="혜택",maxAttempts=10)
+
                 }
+
             }
 
             // 모든 작업이 완료되면 서비스 종료
@@ -59,6 +66,63 @@ class MyAccessibilityService : AccessibilityService() {
             disableSelf()
         }
     }
+
+    private fun findTextElements() {
+        // 현재 활성 창의 루트 노드를 가져옵니다.
+        val rootNode = rootInActiveWindow ?: return
+
+        // 찾고자 하는 텍스트 목록
+        val textsToFind = listOf("혜택", "홈", "전체", "혜택", "방송중")
+
+        // 각 텍스트에 대해 탐색
+        for (text in textsToFind) {
+            val nodes = rootNode.findAccessibilityNodeInfosByText(text)
+            if (nodes.isNotEmpty()) {
+                Log.d("MyAccessibilityService", "Found text: $text")
+                // 원하는 작업을 여기에 작성합니다 (예: 클릭)
+                // 예를 들어, 첫 번째 노드 클릭
+                nodes.firstOrNull()?.let { node ->
+
+                        node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                        Log.d("MyAccessibilityService", "Clicked text: $text")
+                        SystemClock.sleep(1000) // 1초 대기
+
+                }
+            } else {
+                Log.d("MyAccessibilityService", "Text not found: $text")
+            }
+        }
+    }
+
+    fun mainBack(
+        targetText: String = "",  // 눌러야 할 텍스트
+        sleepTime: Long = 300,    // 버튼 클릭 후 대기 시간
+        maxAttempts: Int = 25     // 최대 시도 횟수
+    ) {
+        val rootNode = rootInActiveWindow ?: return
+        var attemptCount = 0
+        var textFound = false
+
+        while (attemptCount < maxAttempts) {
+            // targetText가 화면에 있는지 확인
+            val nodes = rootNode.findAccessibilityNodeInfosByText(targetText)
+            if (nodes.isNotEmpty()) {
+                Log.d("Func", "$targetText found, stopping back press at attempt $attemptCount")
+                // "혜택" 텍스트를 찾으면 작업을 멈춥니다.
+                return
+            } else {
+                // targetText가 화면에 없으면 백 버튼 누르기
+                performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+                SystemClock.sleep(sleepTime)
+
+                attemptCount++
+                Log.d("Func", "Performed back press $attemptCount time(s)")
+            }
+        }
+
+        Log.d("Func", "Exceeded maximum attempts of $maxAttempts without finding $targetText")
+    }
+
 
     private fun performClick(node: AccessibilityNodeInfo) {
         if (node.isClickable) {
