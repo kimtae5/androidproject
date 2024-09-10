@@ -1,41 +1,17 @@
 package com.test.tclick
 
 import android.util.Log
+import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class Click(private val func: Func) {
 
-    suspend fun execute() {
-        withContext(Dispatchers.IO) {
-            try {
-
-                val buttonTexts = listOf("혜택", "홈", "전체")
-
-                for (buttonText in buttonTexts) {
-                    val clicked = func.findAndClick(
-                        text = buttonText,
-                        contains = false,
-                        sleepTime = 500,
-                        clicks = 1,
-                        needElements = 1,
-                        longClick = false
-                    )
-
-                    if (clicked) {
-                        Log.d("ClickHandler", "$buttonText 버튼 클릭 성공")
-                    } else {
-                        Log.d("ClickHandler", "$buttonText 버튼을 찾을 수 없음")
-                    }
-
-                    func.mainBack(
-                        text2 = buttonText,
-                        text1 = "", // 종료 조건 텍스트는 빈 문자열로 설정
-                        sleepTime = 300
-                    )
-                }
-
+//    suspend fun execute(rootNode: AccessibilityNodeInfo) {
+//        withContext(Dispatchers.IO) {
+//            try {
+//                func.findTextElements(rootNode)
 //                // '혜택'이라는 텍스트를 가진 요소 찾기
 //                func.mainBack(text1="홈")
 //                delay(500)
@@ -110,122 +86,122 @@ class Click(private val func: Func) {
 //
 //                func.scrollMove("up", 2, 0)
 //
-            } catch (e: Exception) {
-                Log.e("ClickTask", "Error occurred: ${e.localizedMessage}")
-            }
-        }
-    }
-
-    private suspend fun handleWeeklyMission() {
-        var receivedMissionFound = false
-        repeat(10) {
-            if (func.findAndClick("페이지", true, 500, 1, if (false) 1 else 0)) {
-                if (func.findElementByText("구경가기") == null) {
-                    func.findAndClick("10원 받기", false, 1000, 1, if (false) 1 else 0)
-                }
-                func.mainBack("페이지", false.toString())
-            }
-            func.scrollMove("down", 3, 0)
-
-            if (func.findElementByText("받은 미션") != null) {
-                receivedMissionFound = true
-                return
-            }
-        }
-        if (receivedMissionFound) {
-            func.mainBack("혜택", false.toString())
-        }
-    }
-
-    private suspend fun handleStepCounter() {
-        func.waitElement(true, "선물")
-        delay(2000)
-        repeat(5) {
-            if (func.findElementByText("선물 상자를 눌러 선물을 받으세요") != null) {
-                func.findAndClick("선물 상자를 눌러 선물을 받으세요", true, 1000, 1, if (false) 1 else 0)
-            } else {
-                return
-            }
-        }
-        func.mainBack("혜택", false.toString())
-    }
-
-    private suspend fun handleWeeklyVisitMission() {
-        var cnt = 0
-        repeat(10) {
-            if (func.findAndClick("포인트 받기", true, 1000, 1, if (false) 1 else 0)) {
-                if (func.findElementByText("상품을 눌러서 구경하면") != null) {
-                    delay(4000)
-                }
-                func.findAndClick("동의하고 시작하기", false, 500, 1, if (false) 1 else 0)
-                val place = handleMissionLocation()
-                if (place) {
-                    handleLocationMission()
-                } else {
-                    handleKeywordMission()
-                }
-            } else {
-                cnt++
-                Log.d("MainTask", "$cnt 번 포인트받기 없음")
-                if (cnt > 2) {
-                    return
-                }
-                func.scrollMove("down", 2, 0)
-            }
-        }
-        func.mainBack("혜택", false.toString())
-    }
-
-    private fun handleMissionLocation(): Boolean {
-        val place = func.findElementByText("장") != null
-        if (place) {
-            Log.d("MainTask", "장소미션")
-        }
-        return place
-    }
-
-    private suspend fun handleLocationMission() {
-        repeat(2) {
-            if (!func.findAndClick("저장", false, 500, 1, if (false) 1 else 0)) {
-                func.scrollMove("down", 2, 0)
-            } else {
-                return
-            }
-        }
-        func.findAndClick("자동 로그인", true, 2000, 1, if (false) 1 else 0)
-        func.findAndClick("예", false, 4000, 1, if (false) 1 else 0)
-        func.findAndClick("동의", false, 2000, 1, if (false) 1 else 0)
-        func.findAndClick("지금 바로 시작하기", true, 1000, 1, if (false) 1 else 0)
-        delay(5000)
-        func.mainBack("혜택", false.toString())
-    }
-
-    private suspend fun handleKeywordMission() {
-        repeat(2) {
-            if (!func.findAndClick("복사", true, 2000, 1, if (false) 1 else 0)) {
-                func.scrollMove("down", 2, 0)
-            } else {
-                return
-            }
-        }
-        func.backKey(4)
-        delay(1000)
-
-    }
-
-    private suspend fun handlePostMission() {
-        if (func.findElementByText("적립") != null) {
-            repeat(20) {
-                func.scrollMove("down", 10, 0)
-                if (func.findElementByText("적립") != null) {
-                    func.scrollMove("down", 5, 0)
-                } else {
-                    func.mainBack("혜택", false.toString())
-                    return
-                }
-            }
-        } else {
-            func.mainBack("혜택", false.toString())
-        }
-    }
+//            } catch (e: Exception) {
+//                Log.e("ClickTask", "Error occurred: ${e.localizedMessage}")
+//            }
+//        }
+//    }
+//
+//    private suspend fun handleWeeklyMission() {
+//        var receivedMissionFound = false
+//        repeat(10) {
+//            if (func.findAndClick("페이지", true, 500, 1, if (false) 1 else 0)) {
+//                if (func.findElementByText("구경가기") == null) {
+//                    func.findAndClick("10원 받기", false, 1000, 1, if (false) 1 else 0)
+//                }
+//                func.mainBack("페이지", false.toString())
+//            }
+//            func.scrollMove("down", 3, 0)
+//
+//            if (func.findElementByText("받은 미션") != null) {
+//                receivedMissionFound = true
+//                return
+//            }
+//        }
+//        if (receivedMissionFound) {
+//            func.mainBack("혜택", false.toString())
+//        }
+//    }
+//
+//    private suspend fun handleStepCounter() {
+//        func.waitElement(true, "선물")
+//        delay(2000)
+//        repeat(5) {
+//            if (func.findElementByText("선물 상자를 눌러 선물을 받으세요") != null) {
+//                func.findAndClick("선물 상자를 눌러 선물을 받으세요", true, 1000, 1, if (false) 1 else 0)
+//            } else {
+//                return
+//            }
+//        }
+//        func.mainBack("혜택", false.toString())
+//    }
+//
+//    private suspend fun handleWeeklyVisitMission() {
+//        var cnt = 0
+//        repeat(10) {
+//            if (func.findAndClick("포인트 받기", true, 1000, 1, if (false) 1 else 0)) {
+//                if (func.findElementByText("상품을 눌러서 구경하면") != null) {
+//                    delay(4000)
+//                }
+//                func.findAndClick("동의하고 시작하기", false, 500, 1, if (false) 1 else 0)
+//                val place = handleMissionLocation()
+//                if (place) {
+//                    handleLocationMission()
+//                } else {
+//                    handleKeywordMission()
+//                }
+//            } else {
+//                cnt++
+//                Log.d("MainTask", "$cnt 번 포인트받기 없음")
+//                if (cnt > 2) {
+//                    return
+//                }
+//                func.scrollMove("down", 2, 0)
+//            }
+//        }
+//        func.mainBack("혜택", false.toString())
+//    }
+//
+//    private fun handleMissionLocation(): Boolean {
+//        val place = func.findElementByText("장") != null
+//        if (place) {
+//            Log.d("MainTask", "장소미션")
+//        }
+//        return place
+//    }
+//
+//    private suspend fun handleLocationMission() {
+//        repeat(2) {
+//            if (!func.findAndClick("저장", false, 500, 1, if (false) 1 else 0)) {
+//                func.scrollMove("down", 2, 0)
+//            } else {
+//                return
+//            }
+//        }
+//        func.findAndClick("자동 로그인", true, 2000, 1, if (false) 1 else 0)
+//        func.findAndClick("예", false, 4000, 1, if (false) 1 else 0)
+//        func.findAndClick("동의", false, 2000, 1, if (false) 1 else 0)
+//        func.findAndClick("지금 바로 시작하기", true, 1000, 1, if (false) 1 else 0)
+//        delay(5000)
+//        func.mainBack("혜택", false.toString())
+//    }
+//
+//    private suspend fun handleKeywordMission() {
+//        repeat(2) {
+//            if (!func.findAndClick("복사", true, 2000, 1, if (false) 1 else 0)) {
+//                func.scrollMove("down", 2, 0)
+//            } else {
+//                return
+//            }
+//        }
+//        func.backKey(4)
+//        delay(1000)
+//
+//    }
+//
+//    private suspend fun handlePostMission() {
+//        if (func.findElementByText("적립") != null) {
+//            repeat(20) {
+//                func.scrollMove("down", 10, 0)
+//                if (func.findElementByText("적립") != null) {
+//                    func.scrollMove("down", 5, 0)
+//                } else {
+//                    func.mainBack("혜택", false.toString())
+//                    return
+//                }
+//            }
+//        } else {
+//            func.mainBack("혜택", false.toString())
+//        }
+//    }
 }
