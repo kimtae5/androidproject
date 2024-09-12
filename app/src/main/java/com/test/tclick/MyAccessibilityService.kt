@@ -69,74 +69,6 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun findTextElements() {
-        // 현재 활성 창의 루트 노드를 가져옵니다.
-        val rootNode = rootInActiveWindow ?: return
-
-        // 찾고자 하는 텍스트 목록
-        val textsToFind = listOf("혜택", "홈", "전체", "혜택", "행운복권")
-
-        // 각 텍스트에 대해 탐색
-        for (text in textsToFind) {
-            val nodes = rootNode.findAccessibilityNodeInfosByText(text)
-            if (nodes.isNotEmpty()) {
-                Log.d("MyAccessibilityService", "Found text: $text")
-
-                // 첫 번째 노드 탐색
-                nodes.firstOrNull()?.let { node ->
-                    if (node.isClickable) {
-                        node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                        Log.d("MyAccessibilityService", "Clicked text: $text")
-                    } else {
-                        // 부모 노드 중 클릭 가능한 노드 찾기
-                        var parent = node.parent
-                        while (parent != null) {
-                            if (parent.isClickable) {
-                                parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                                Log.d("MyAccessibilityService", "Clicked parent node for text: $text")
-                                break
-                            }
-                            parent = parent.parent
-                        }
-                        if (parent == null) {
-                            Log.d("MyAccessibilityService", "No clickable parent found for text: $text")
-                        }
-                    }
-                    SystemClock.sleep(1000) // 1초 대기
-                }
-            } else {
-                Log.d("MyAccessibilityService", "Text not found: $text")
-            }
-        }
-    }
-
-
-
-
-    private fun performClick(node: AccessibilityNodeInfo) {
-        if (node.isClickable) {
-            val clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            if (clicked) {
-                Log.d(TAG, "요소 클릭 성공")
-            } else {
-                Log.d(TAG, "요소 클릭 실패")
-            }
-        } else {
-            Log.d(TAG, "요소가 클릭할 수 없습니다. 부모 노드를 클릭 시도합니다.")
-            var parent = node.parent
-            while (parent != null) {
-                if (parent.isClickable) {
-                    val clicked = parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                    if (clicked) {
-                        Log.d(TAG, "부모 요소 클릭 성공 : " + node.text)
-                        break
-                    }
-                }
-                parent = parent.parent
-            }
-        }
-    }
-
     private fun logAllNodes(node: AccessibilityNodeInfo?, level: Int) {
         if (node == null) {
             return
@@ -216,22 +148,6 @@ class MyAccessibilityService : AccessibilityService() {
             Log.d(TAG, "Toss 앱을 찾을 수 없습니다.")
             Toast.makeText(this, "Toss 앱을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    fun findNodeByText(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
-        if (root == null) return null
-
-        if (text == root.text) {
-            return root
-        }
-
-        for (i in 0 until root.childCount) {
-            val result = findNodeByText(root.getChild(i), text)
-            if (result != null) {
-                return result
-            }
-        }
-        return null
     }
 
     private fun createNotificationChannel() {
